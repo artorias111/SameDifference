@@ -1,31 +1,32 @@
 process trim_reads { 
 
-    conda '/data2/work/local/miniconda/envs/fastp'
+    conda params.fastp_env
 
-    tag "trim ${untrimmed_read1.baseName.baseName}"
+    tag "trim ${sample_id}"
 
     input:
-    tuple path(untrimmed_read1), path(untrimmed_read2)
+    tuple val(sample_id), path(reads)
 
     output:
-    tuple path(trimmed_r1), path(trimmed_r2)
+    tuple val(sample_id), path("${sample_id}*.trimmed.fastq.gz")
+    path "${sample_id}.html", emit: html_report
+    path "${sample_id}.json", emit: json_report
+
 
     script:
     // Define output and input filenames for fastp, along with the report name base
 
-    def prefix1 = untrimmed_read1.baseName.baseName
-    def prefix2 = untrimmed_read2.baseName.baseName
+    def untrimmed_read1 = reads[0]
+    def untrimmed_read2 = reads[1]
 
-    def trimmed_r1 = "${prefix1}.trimmed.fastq.gz"
-    def trimmed_r2 = "${prefix2}.trimmed.fastq.gz"
-    def name_base = untrimmed_read1.simpleName
-
+    def name_base = sample_id
     """
     fastp \\
         -i ${untrimmed_read1} \\
         -I ${untrimmed_read2} \\
-        -o ${trimmed_r1} \\
-        -O ${trimmed_r2} \\
+        -o ${sample_id}_1.trimmed.fastq.gz \\
+        -O ${sample_id}_2.trimmed.fastq.gz \\
         -h ${name_base}.html \\
         -j ${name_base}.json
     """
+}
