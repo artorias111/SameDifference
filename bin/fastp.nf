@@ -1,32 +1,29 @@
-process trim_reads { 
+process TRIM_READS {
 
-    conda params.fastp_env
-
-    tag "trim ${sample_id}"
+    tag "${meta.id}"
+    label 'process_medium'
 
     input:
-    tuple val(sample_id), path(reads)
+    tuple val(meta), path(r1), path(r2)
 
     output:
-    tuple val(sample_id), path("${sample_id}*.trimmed.fastq.gz")
-    path "${sample_id}.html", emit: html_report
-    path "${sample_id}.json", emit: json_report
-
+    tuple val(meta), path("${meta.id}_1.trimmed.fastq.gz"), path("${meta.id}_2.trimmed.fastq.gz"), emit: reads
+    path "${meta.id}.fastp.json", emit: json
+    path "${meta.id}.fastp.html", emit: html
+    tuple val("${task.process}"), val('fastp'), eval("fastp --version 2>&1 | sed 's/fastp //'"), topic: versions
 
     script:
-    // Define output and input filenames for fastp, along with the report name base
-
-    def untrimmed_read1 = reads[0]
-    def untrimmed_read2 = reads[1]
-
-    def name_base = sample_id
     """
     fastp \\
-        -i ${untrimmed_read1} \\
-        -I ${untrimmed_read2} \\
-        -o ${sample_id}_1.trimmed.fastq.gz \\
-        -O ${sample_id}_2.trimmed.fastq.gz \\
-        -h ${name_base}.html \\
-        -j ${name_base}.json
+        -i ${r1} \\
+        -I ${r2} \\
+        -o ${meta.id}_1.trimmed.fastq.gz \\
+        -O ${meta.id}_2.trimmed.fastq.gz \\
+        --detect_adapter_for_pe \\
+        --trim_poly_g \\
+        --length_required 35 \\
+        -w ${task.cpus} \\
+        -j ${meta.id}.fastp.json \\
+        -h ${meta.id}.fastp.html
     """
 }

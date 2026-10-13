@@ -1,6 +1,13 @@
 # SameDifference
 
-Usage
-```shell
-nextflow run artorias111/SameDifference --group1Reads /path/to/grp1/reads --group2Reads /path/to/grp2/reads --group1Ref /path/to/grp1/ref.fa --group2Ref /path/to/grp2/ref.fa
-```
+## Population genomics with low coverage whole genome sequencing.
+
+## Usage
+
+### params
+A different param file for each step. Params are organized in `yaml` files. All the `params.yaml` files are in the `params` directory. 
+
+
+
+
+### Order of execution

@@ -1,0 +1,6 @@
+# example, copy next to the run and edit
+stage: align
+samplesheet: /path/to/samplesheet.csv
+ref: /path/to/reference.fa
+ref_name: GmacEBS74
+outdir: /path/to/results
