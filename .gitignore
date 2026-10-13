@@ -1,5 +1,6 @@
 work/*
 results/*
+results_test/*
 
 .nextflow*
 results*/
