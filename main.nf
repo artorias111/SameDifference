@@ -6,6 +6,7 @@ include { PREP_REFERENCE } from './bin/prep_reference.nf'
 include { MAP } from './bin/map.nf'
 include { CLIP_OVERLAP } from './bin/clip_overlap.nf'
 include { INDEX_BAM; SAMTOOLS_STATS; MOSDEPTH } from './bin/bam_qc.nf'
+include { DEPTH_DIST } from './bin/angsd_depth.nf'
 
 workflow align {
     take:
@@ -40,11 +41,22 @@ workflow align {
     MOSDEPTH(INDEX_BAM.out.bam)
 }
 
+workflow gl {
+    take:
+    bams_sheet
+    chroms
+    reference
+}
+
 workflow {
     if (params.stage == 'align') {
         def reference = tuple([id: params.ref_name], file(params.ref, checkIfExists: true))
         align(params.samplesheet, reference)
     }
+    else if (params.stage == 'gl') {
+        // gl stuff
+    }
+
     else {
         error "Unknown stage '${params.stage}'. Options: align"
     }
