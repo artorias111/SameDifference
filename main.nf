@@ -3,6 +3,9 @@
 include { TRIM_READS } from './bin/fastp.nf'
 include { SEQKIT_STATS } from './bin/seqkit.nf'
 include { PREP_REFERENCE } from './bin/prep_reference.nf'
+include { MAP } from './bin/map.nf'
+include { CLIP_OVERLAP } from './bin/clip_overlap.nf'
+include { INDEX_BAM; SAMTOOLS_STATS; MOSDEPTH } from './bin/bam_qc.nf'
 
 workflow align {
     take:
@@ -29,6 +32,12 @@ workflow align {
         .flatten()
         .collect()
     SEQKIT_STATS(trimmed)
+
+    MAP(TRIM_READS.out.reads, PREP_REFERENCE.out.reference)
+    CLIP_OVERLAP(MAP.out.bam)
+    INDEX_BAM(CLIP_OVERLAP.out.bam)
+    SAMTOOLS_STATS(INDEX_BAM.out.bam)
+    MOSDEPTH(INDEX_BAM.out.bam)
 }
 
 workflow {
