@@ -1,0 +1,5 @@
+sample,group,bam
+sampleA,all,results_test/bams/sampleA.clipped.bam
+sampleB,all,results_test/bams/sampleB.clipped.bam
+sampleA,g1,results_test/bams/sampleA.clipped.bam
+sampleB,g2,results_test/bams/sampleB.clipped.bam
