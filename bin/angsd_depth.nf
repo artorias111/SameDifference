@@ -4,7 +4,7 @@ process DEPTH_DIST {
     label 'process_low'
 
     input:
-    tuple val(ref_meta), val(group), val(chr), path(bams), path(bais)
+    tuple val(group), val(chr), path(bams), path(bais)
     tuple path(ref), path(fai)
 
     output:

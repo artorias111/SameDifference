@@ -50,10 +50,12 @@ workflow gl {
     main:
     bam_ch = channel.fromPath(bams_sheet)
             .splitCsv(header: true)
-            .map { row -> tuple(row.group, file(row.bam), file("${row.bam}.bai", checkIfExists: true))}
+            .map { row -> tuple(row.group, file(row.bam, checkIfExists: true), file("${row.bam}.bai", checkIfExists: true))}
             .groupTuple(by: 0)
             .combine(chroms)
-            .view()
+            .map { group, bams, bais, chrom -> tuple(group, chrom, bams, bais) }
+
+    DEPTH_DIST(bam_ch, reference)
 }
 
 workflow {
@@ -62,7 +64,7 @@ workflow {
         align(params.samplesheet, reference)
     }
     else if (params.stage == 'gl') {
-        def reference = tuple([id: params.ref_name], file(params.ref, checkIfExists: true), file("${params.ref}.fai", checkIfExists: true))
+        def reference = tuple(file(params.ref, checkIfExists: true), file("${params.ref}.fai", checkIfExists: true))
 
         chromosome_ch = channel.fromPath(params.chroms)
                     .splitText()
@@ -70,9 +72,8 @@ workflow {
 
         gl(params.bams, chromosome_ch, reference)
     }
-
     else {
-        error "Unknown stage '${params.stage}'. Options: align"
+        error "Unknown stage '${params.stage}'. Options: align, gl"
     }
 
     channel.topic('versions')
