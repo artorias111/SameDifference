@@ -6,6 +6,7 @@ include { PREP_REFERENCE } from './bin/prep_reference.nf'
 include { MAP } from './bin/map.nf'
 include { CLIP_OVERLAP } from './bin/clip_overlap.nf'
 include { INDEX_BAM; SAMTOOLS_STATS; MOSDEPTH } from './bin/bam_qc.nf'
+include { DEPTH_DIST } from './bin/angsd_depth.nf'
 
 workflow align {
     take:
@@ -40,13 +41,39 @@ workflow align {
     MOSDEPTH(INDEX_BAM.out.bam)
 }
 
+workflow gl {
+    take:
+    bams_sheet
+    chroms
+    reference
+
+    main:
+    bam_ch = channel.fromPath(bams_sheet)
+            .splitCsv(header: true)
+            .map { row -> tuple(row.group, file(row.bam, checkIfExists: true), file("${row.bam}.bai", checkIfExists: true))}
+            .groupTuple(by: 0)
+            .combine(chroms)
+            .map { group, bams, bais, chrom -> tuple(group, chrom, bams, bais) }
+
+    DEPTH_DIST(bam_ch, reference)
+}
+
 workflow {
     if (params.stage == 'align') {
         def reference = tuple([id: params.ref_name], file(params.ref, checkIfExists: true))
         align(params.samplesheet, reference)
     }
+    else if (params.stage == 'gl') {
+        def reference = tuple(file(params.ref, checkIfExists: true), file("${params.ref}.fai", checkIfExists: true))
+
+        chromosome_ch = channel.fromPath(params.chroms)
+                    .splitText()
+                    .map { chr -> chr.trim() }
+
+        gl(params.bams, chromosome_ch, reference)
+    }
     else {
-        error "Unknown stage '${params.stage}'. Options: align"
+        error "Unknown stage '${params.stage}'. Options: align, gl"
     }
 
     channel.topic('versions')
