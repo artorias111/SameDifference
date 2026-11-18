@@ -1,10 +1,10 @@
 process DEPTH_DIST {
 
-    tag "${grouo.chr}"
+    tag "${group}.${chr}"
     label 'process_low'
 
     input:
-    tuple val(group), val(chr), path(bams), path(bais)
+    tuple val(ref_meta), val(group), val(chr), path(bams), path(bais)
     tuple path(ref), path(fai)
 
     output:

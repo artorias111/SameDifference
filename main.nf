@@ -46,6 +46,14 @@ workflow gl {
     bams_sheet
     chroms
     reference
+
+    main:
+    bam_ch = channel.fromPath(bams_sheet)
+            .splitCsv(header: true)
+            .map { row -> tuple(row.group, file(row.bam), file("${row.bam}.bai", checkIfExists: true))}
+            .groupTuple(by: 0)
+            .combine(chroms)
+            .view()
 }
 
 workflow {
@@ -54,7 +62,13 @@ workflow {
         align(params.samplesheet, reference)
     }
     else if (params.stage == 'gl') {
-        // gl stuff
+        def reference = tuple([id: params.ref_name], file(params.ref, checkIfExists: true), file("${params.ref}.fai", checkIfExists: true))
+
+        chromosome_ch = channel.fromPath(params.chroms)
+                    .splitText()
+                    .map { chr -> chr.trim() }
+
+        gl(params.bams, chromosome_ch, reference)
     }
 
     else {
